@@ -1,6 +1,6 @@
-import { motion, useInView, useMotionValue, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useInView, useMotionValue, useTransform, useSpring, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
-import { ExternalLink, Github, ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import { ExternalLink, Github, Layers, Flame } from "lucide-react";
 import { useIsMobile } from "../hooks/useIsMobile";
 
 const projects = [
@@ -62,7 +62,7 @@ const projects = [
     accentGlow: "rgba(236,72,153,0.28)",
     gradient: "linear-gradient(135deg,#ec4899,#f43f5e)",
     githubLink: "https://github.com/KALANITHI-M/Health-o-meter.git",
-    liveLink: "https://health-o-meter.vercel.app",
+    liveLink: "https://haris-p-m.github.io/Health-o-Meter/#/auth",
   },
   {
     title: "House Price Prediction System",
@@ -84,6 +84,26 @@ const projects = [
     githubLink: "https://github.com/KALANITHI-M/Product-Management-System.git",
     liveLink: "",
   },
+  {
+  title: "Mathematics Club Event Registration Portal",
+  description: "A responsive event registration platform developed for the Mathematics Club, enabling students to explore upcoming events, register online, and access event details through a clean, intuitive, and user-friendly interface.",
+  tools: ["HTML", "CSS", "JavaScript", "Zoho Catalyst", "Responsive Design", "Event Registration"],
+  accentColor: "#22c55e",
+  accentGlow: "rgba(34,197,94,0.28)",
+  gradient: "linear-gradient(135deg,#22c55e,#16a34a)",
+  githubLink: "", // Add your GitHub repository if available
+  liveLink: "https://mathsclub-60038694178.development.catalystserverless.in/app/index.html",
+},
+{
+  title: "GUVI DevOps Learning Platform",
+  description: "A responsive web-based learning platform developed for GUVI to provide an interactive DevOps learning experience. The application showcases DevOps concepts, learning modules, technology roadmaps, and hands-on resources through a modern, user-friendly interface optimized for desktop and mobile devices.",
+  tools: ["React", "JavaScript", "Tailwind CSS", "Responsive Design", "UI/UX", "Netlify"],
+  accentColor: "#3b82f6",
+  accentGlow: "rgba(59,130,246,0.28)",
+  gradient: "linear-gradient(135deg,#3b82f6,#2563eb)",
+  githubLink: "https://github.com/KALANITHI-M/Guvi_Devops",
+  liveLink: "https://6989a90d797eb125bde79917--guvi-kec.netlify.app/",
+}
 ];
 
 const getProjectType = (tools: string[]): string => {
@@ -95,14 +115,58 @@ const getProjectType = (tools: string[]): string => {
   return "Full-Stack";
 };
 
+const sortedProjects = [...projects].sort((left, right) => {
+  const leftLive = Boolean(left.liveLink);
+  const rightLive = Boolean(right.liveLink);
+  if (leftLive === rightLive) return 0;
+  return leftLive ? -1 : 1;
+});
+
+const getProjectTier = (project: (typeof projects)[0], index: number) => {
+  if (project.liveLink && index === 0) {
+    return {
+      label: "Featured",
+      border: "#d4af37",
+      glow: "rgba(212,175,55,0.18)",
+      tint: "rgba(212,175,55,0.08)",
+      badgeClass: "border-[#d4af37]/40 bg-[#d4af37]/10 text-[#f7e6a8]",
+      buttonStyle: "linear-gradient(90deg,#d4af37,#f1c84c)",
+      buttonGlow: "rgba(212,175,55,0.30)",
+    };
+  }
+
+  if (project.liveLink) {
+    return {
+      label: "Live",
+      border: "#22c55e",
+      glow: "rgba(34,197,94,0.16)",
+      tint: "rgba(34,197,94,0.08)",
+      badgeClass: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300",
+      buttonStyle: "linear-gradient(90deg,#16a34a,#22c55e)",
+      buttonGlow: "rgba(34,197,94,0.28)",
+    };
+  }
+
+  return {
+    label: "Other",
+    border: "#64748b",
+    glow: "rgba(100,116,139,0.14)",
+    tint: "rgba(100,116,139,0.06)",
+    badgeClass: "border-slate-400/30 bg-slate-400/10 text-slate-300",
+    buttonStyle: "linear-gradient(90deg,#475569,#64748b)",
+    buttonGlow: "rgba(100,116,139,0.24)",
+  };
+};
+
 // ─── 3D Tilt Project Card ─────────────────────────────────────────────────────
-const ProjectCard = ({ project, index }: { project: typeof projects[0]; index: number }) => {
+const ProjectCard = ({ project, index, reduceMotion }: { project: typeof projects[0]; index: number; reduceMotion: boolean }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const isMobile = useIsMobile();
   const isCardInView = useInView(cardRef, { margin: "-5% 0px -5% 0px", once: false });
   // On mobile: auto-glow when card scrolls into view
   const isActive = hovered || (isMobile && isCardInView);
+  const tier = getProjectTier(project, index);
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const rotX = useTransform(my, [-0.5, 0.5], [6, -6]);
@@ -145,7 +209,7 @@ const ProjectCard = ({ project, index }: { project: typeof projects[0]; index: n
           animate={{ opacity: isActive ? 1 : 0 }}
           transition={{ duration: 0.3 }}
           style={{
-            background: project.accentGlow,
+            background: tier.glow,
             filter: "blur(25px)",
             transform: "scale(1.08)",
           }}
@@ -156,36 +220,36 @@ const ProjectCard = ({ project, index }: { project: typeof projects[0]; index: n
           className="relative h-full flex flex-col overflow-hidden rounded-xl"
           style={{
             background: "linear-gradient(145deg, hsl(218 45% 9%), hsl(218 45% 5%))",
-            border: `1px solid ${isActive ? project.accentColor + "55" : project.accentColor + "30"}`,
+            border: `1px solid ${isActive ? tier.border : `${tier.border}55`}`,
             boxShadow: hovered
-              ? `0 0 50px ${project.accentGlow}, 0 20px 50px rgba(0,0,0,0.4)`
-              : `0 0 30px ${project.accentGlow}, 0 12px 40px rgba(0,0,0,0.3)`,
+              ? `0 0 50px ${tier.glow}, 0 20px 50px rgba(0,0,0,0.4)`
+              : `0 0 30px ${tier.glow}, 0 12px 40px rgba(0,0,0,0.3)`,
             transition: "border-color 0.35s ease, box-shadow 0.35s ease",
           }}
         >
           {/* Animated gradient top bar */}
           <motion.div
             className="absolute top-0 left-0 right-0 h-0.5 origin-left rounded-t-xl"
-            style={{ background: project.gradient, backgroundSize: "200% 100%" }}
+            style={{ background: tier.label === "Featured" ? "linear-gradient(90deg,#d4af37,#f1c84c)" : tier.label === "Live" ? "linear-gradient(90deg,#16a34a,#22c55e)" : "linear-gradient(90deg,#64748b,#7c8aa0)", backgroundSize: "200% 100%" }}
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: index * 0.1 + 0.2 }}
-            animate={isActive ? { backgroundPosition: ["0% 0", "200% 0", "0% 0"] } : {}}
+            animate={reduceMotion ? undefined : (isActive ? { backgroundPosition: ["0% 0", "200% 0", "0% 0"] } : {})}
           />
 
           {/* Shimmer on hover */}
           <motion.div
             className="absolute inset-0 rounded-xl pointer-events-none"
             style={{ background: "linear-gradient(110deg,transparent 35%,rgba(255,255,255,0.035) 50%,transparent 65%)", backgroundSize: "200% 100%" }}
-            animate={isActive ? { backgroundPosition: ["200% 0", "-200% 0"] } : {}}
+            animate={reduceMotion ? undefined : (isActive ? { backgroundPosition: ["200% 0", "-200% 0"] } : {})}
             transition={{ duration: 0.7 }}
           />
 
           {/* Subtle bg tint */}
           <div
             className="absolute inset-0 rounded-xl pointer-events-none opacity-20"
-            style={{ background: `radial-gradient(circle at top left,${project.accentColor}20,transparent 60%)` }}
+            style={{ background: `radial-gradient(circle at top left,${tier.tint},transparent 60%)` }}
           />
 
           <div className="p-6 flex-1 flex flex-col relative z-10">
@@ -200,12 +264,19 @@ const ProjectCard = ({ project, index }: { project: typeof projects[0]; index: n
               </motion.h3>
               <motion.span
                 className="shrink-0 px-2.5 py-1 rounded-md text-[10px] font-subheading font-bold whitespace-nowrap text-white shadow-lg"
-                style={{ background: project.gradient }}
+                style={{ background: tier.label === "Featured" ? "linear-gradient(90deg,#d4af37,#f1c84c)" : tier.label === "Live" ? "linear-gradient(90deg,#16a34a,#22c55e)" : "linear-gradient(90deg,#64748b,#7c8aa0)" }}
                 animate={isActive ? { scale: 1.08 } : { scale: 1 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 {type}
               </motion.span>
+
+              {project.liveLink ? (
+                <span className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-subheading font-bold uppercase tracking-[0.22em] ${tier.badgeClass}`}>
+                  <Flame size={10} />
+                  {tier.label === "Featured" ? "Top Pick" : "Live Priority"}
+                </span>
+              ) : null}
             </div>
 
             <p className="text-sm md:text-base text-muted-foreground mb-5 flex-1 font-body leading-relaxed">
@@ -242,8 +313,8 @@ const ProjectCard = ({ project, index }: { project: typeof projects[0]; index: n
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-lg text-white px-5 py-2.5 text-sm font-subheading font-bold z-50"
-                  style={{ background: "linear-gradient(90deg,#f59e0b,#f97316)", boxShadow: "0 8px 30px rgba(245,158,11,0.3)" }}
-                  whileHover={{ y: -2, scale: 1.04, boxShadow: "0 14px 40px rgba(245,158,11,0.45)" }}
+                  style={{ background: tier.buttonStyle, boxShadow: `0 8px 30px ${tier.buttonGlow}` }}
+                  whileHover={{ y: -2, scale: 1.04, boxShadow: `0 14px 40px ${tier.buttonGlow}` }}
                   whileTap={{ scale: 0.97 }}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -290,16 +361,7 @@ const ProjectCard = ({ project, index }: { project: typeof projects[0]; index: n
 const ProjectsSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const perPage = 3;
-  const totalPages = Math.ceil(projects.length / perPage);
-  const slice = projects.slice((currentPage - 1) * perPage, currentPage * perPage);
-
-  const changePage = (n: number) => {
-    setCurrentPage(n);
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const reduceMotion = useReducedMotion();
 
   const tags = ["Recruiter friendly", "Outcome driven", "Web · AI · IoT · Full-Stack"];
 
@@ -309,13 +371,13 @@ const ProjectsSection = () => {
       <motion.div
         className="absolute -top-24 left-0 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle,hsl(45 93% 47% / 0.08),transparent 70%)", filter: "blur(60px)" }}
-        animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
+        animate={reduceMotion ? undefined : { scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 8, repeat: Infinity }}
       />
       <motion.div
         className="absolute -bottom-32 right-0 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle,hsl(45 80% 35% / 0.07),transparent 70%)", filter: "blur(60px)" }}
-        animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+        animate={reduceMotion ? undefined : { scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 10, repeat: Infinity, delay: 2 }}
       />
 
@@ -384,74 +446,23 @@ const ProjectsSection = () => {
           ))}
         </motion.div>
 
-        {/* Cards grid — AnimatePresence for page switch */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentPage}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.35 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12"
-          >
-            {slice.map((project, i) => (
-              <ProjectCard key={project.title} project={project} index={i} />
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        {/* Cards grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12">
+          {sortedProjects.map((project, i) => (
+            <ProjectCard key={project.title} project={project} index={i} reduceMotion={!!reduceMotion} />
+          ))}
+        </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.45, delay: 0.25 }}
-            className="flex items-center justify-center gap-2 mt-8"
-          >
-            <motion.button
-              onClick={() => changePage(currentPage - 1)}
-              disabled={currentPage === 1}
-              whileHover={{ scale: currentPage === 1 ? 1 : 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className={`p-2 rounded-lg border transition-all duration-300 ${currentPage === 1 ? "border-border/20 text-muted-foreground/30 cursor-not-allowed" : "border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50"}`}
-            >
-              <ChevronLeft size={20} />
-            </motion.button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-              <motion.button
-                key={n}
-                onClick={() => changePage(n)}
-                whileHover={{ scale: 1.12 }}
-                whileTap={{ scale: 0.9 }}
-                className={`w-10 h-10 rounded-lg font-subheading text-sm transition-all duration-300 ${currentPage === n ? "bg-primary text-navy-deep font-semibold shadow-lg shadow-primary/25" : "border border-primary/30 text-primary hover:bg-primary/10"}`}
-              >
-                {n}
-              </motion.button>
-            ))}
-
-            <motion.button
-              onClick={() => changePage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              whileHover={{ scale: currentPage === totalPages ? 1 : 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className={`p-2 rounded-lg border transition-all duration-300 ${currentPage === totalPages ? "border-border/20 text-muted-foreground/30 cursor-not-allowed" : "border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50"}`}
-            >
-              <ChevronRight size={20} />
-            </motion.button>
-          </motion.div>
-        )}
-
-        {totalPages > 1 && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.3 }}
-            className="text-center text-sm text-muted-foreground mt-4 font-body"
-          >
-            Showing {(currentPage - 1) * perPage + 1}–{Math.min(currentPage * perPage, projects.length)} of {projects.length} projects
-          </motion.p>
-        )}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="text-center"
+        >
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground/70 font-subheading">
+            All projects shown on one page to keep recruiters moving
+          </p>
+        </motion.div>
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-import { motion, useInView, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, useInView, useMotionValue, useTransform, useSpring, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
 import { useIsMobile } from "../hooks/useIsMobile";
 import {
@@ -104,9 +104,11 @@ const SkillTag = ({
 const SkillCard = ({
   category,
   index,
+  reduceMotion,
 }: {
   category: (typeof skillCategories)[0];
   index: number;
+  reduceMotion: boolean;
 }) => {
   const Icon = category.icon;
   const cardRef = useRef<HTMLDivElement>(null);
@@ -160,7 +162,7 @@ const SkillCard = ({
         {/* Glow halo */}
         <motion.div
           className="absolute inset-0 rounded-2xl pointer-events-none"
-          animate={{ opacity: isActive ? 1 : 0 }}
+          animate={reduceMotion ? undefined : { opacity: isActive ? 1 : 0 }}
           transition={{ duration: 0.35 }}
           style={{
             background: category.color + "18",
@@ -196,7 +198,7 @@ const SkillCard = ({
                 "linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.03) 50%,transparent 70%)",
               backgroundSize: "200% 100%",
             }}
-            animate={hovered ? { backgroundPosition: ["200% 0", "-200% 0"] } : {}}
+            animate={reduceMotion ? undefined : (hovered ? { backgroundPosition: ["200% 0", "-200% 0"] } : {})}
             transition={{ duration: 0.7 }}
           />
 
@@ -207,17 +209,13 @@ const SkillCard = ({
               <motion.div
                 className="absolute inset-0 rounded-xl"
                 style={{ border: `1px solid ${category.color}40` }}
-                animate={
-                  hovered
-                    ? { scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }
-                    : { scale: 1, opacity: 0 }
-                }
-                transition={{ duration: 1.2, repeat: hovered ? Infinity : 0 }}
+                animate={reduceMotion ? undefined : (hovered ? { scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] } : { scale: 1, opacity: 0 })}
+                transition={{ duration: 1.2, repeat: hovered && !reduceMotion ? Infinity : 0 }}
               />
               <motion.div
                 className="w-12 h-12 rounded-xl flex items-center justify-center"
                 style={{ background: `${category.color}18`, border: `1px solid ${category.color}30` }}
-                animate={hovered ? { scale: 1.1, rotate: [0, 8, -8, 0] } : { scale: 1, rotate: 0 }}
+                animate={reduceMotion ? undefined : (hovered ? { scale: 1.1, rotate: [0, 8, -8, 0] } : { scale: 1, rotate: 0 })}
                 transition={{ duration: 0.4 }}
               >
                 <Icon className="w-6 h-6" style={{ color: category.color }} />
@@ -237,7 +235,7 @@ const SkillCard = ({
             <motion.div
               className="ml-auto w-2 h-2 rounded-full"
               style={{ background: category.color }}
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+              animate={reduceMotion ? undefined : { scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
             />
           </div>
@@ -263,6 +261,7 @@ const SkillCard = ({
 const SkillsSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const reduceMotion = useReducedMotion();
 
   return (
     <section id="skills" className="py-24 relative overflow-hidden">
@@ -278,7 +277,7 @@ const SkillsSection = () => {
           background: "radial-gradient(circle,hsl(45 93% 47% / 0.04),transparent 70%)",
           filter: "blur(40px)",
         }}
-        animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
+        animate={reduceMotion ? undefined : { scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
 
@@ -316,7 +315,7 @@ const SkillsSection = () => {
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {skillCategories.map((cat, i) => (
-            <SkillCard key={cat.title} category={cat} index={i} />
+            <SkillCard key={cat.title} category={cat} index={i} reduceMotion={!!reduceMotion} />
           ))}
         </div>
       </div>

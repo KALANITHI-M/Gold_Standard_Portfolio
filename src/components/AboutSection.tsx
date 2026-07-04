@@ -1,4 +1,4 @@
-import { motion, useInView, useMotionValue, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useInView, useMotionValue, useTransform, useSpring, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { Code2, Brain, Cpu, Clapperboard, Award, Sparkles, Zap, Globe } from "lucide-react";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -43,17 +43,17 @@ const roles = [
 ];
 
 // Floating orb
-const FloatingOrb = ({ x, y, size, color, delay }: { x: string; y: string; size: number; color: string; delay: number }) => (
+const FloatingOrb = ({ x, y, size, color, delay, reduceMotion }: { x: string; y: string; size: number; color: string; delay: number; reduceMotion: boolean }) => (
   <motion.div
     className="absolute rounded-full pointer-events-none"
     style={{ left: x, top: y, width: size, height: size, background: color, filter: "blur(40px)" }}
-    animate={{ y: [0, -20, 0], opacity: [0.15, 0.35, 0.15], scale: [1, 1.15, 1] }}
+    animate={reduceMotion ? undefined : { y: [0, -20, 0], opacity: [0.15, 0.35, 0.15], scale: [1, 1.15, 1] }}
     transition={{ duration: 5 + delay, repeat: Infinity, ease: "easeInOut", delay }}
   />
 );
 
 // 3D Tilt Card for roles
-const RoleCard = ({ role, index }: { role: typeof roles[0]; index: number }) => {
+const RoleCard = ({ role, index, reduceMotion }: { role: typeof roles[0]; index: number; reduceMotion: boolean }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -105,7 +105,7 @@ const RoleCard = ({ role, index }: { role: typeof roles[0]; index: number }) => 
         {/* Glow backdrop */}
         <motion.div
           className="absolute inset-0 rounded-2xl"
-          animate={{ opacity: isActive ? 1 : 0 }}
+          animate={reduceMotion ? undefined : { opacity: isActive ? 1 : 0 }}
           transition={{ duration: 0.3 }}
           style={{ background: role.glow, filter: "blur(20px)", transform: "scale(1.1)" }}
         />
@@ -136,13 +136,13 @@ const RoleCard = ({ role, index }: { role: typeof roles[0]; index: number }) => 
             <motion.div
               className="absolute inset-0 rounded-2xl"
               style={{ background: role.color + "20" }}
-              animate={isActive ? { scale: [1, 1.3, 1], opacity: [0.4, 0, 0.4] } : { scale: 1, opacity: 0.4 }}
-              transition={{ duration: 1.5, repeat: isActive ? Infinity : 0 }}
+              animate={reduceMotion ? undefined : (isActive ? { scale: [1, 1.3, 1], opacity: [0.4, 0, 0.4] } : { scale: 1, opacity: 0.4 })}
+              transition={{ duration: 1.5, repeat: isActive && !reduceMotion ? Infinity : 0 }}
             />
             <motion.div
               className="relative w-full h-full rounded-2xl flex items-center justify-center"
               style={{ background: `${role.color}15`, border: `1px solid ${role.color}30` }}
-              animate={isActive ? { rotate: [0, 5, -5, 0] } : { rotate: 0 }}
+              animate={reduceMotion ? undefined : (isActive ? { rotate: [0, 5, -5, 0] } : { rotate: 0 })}
               transition={{ duration: 0.5 }}
             >
               <Icon className="w-7 h-7" style={{ color: role.color }} />
@@ -152,7 +152,7 @@ const RoleCard = ({ role, index }: { role: typeof roles[0]; index: number }) => 
           <motion.h3
             className="text-xl font-heading mb-1"
             style={{ color: role.color }}
-            animate={isActive ? { scale: 1.05 } : { scale: 1 }}
+            animate={reduceMotion ? undefined : (isActive ? { scale: 1.05 } : { scale: 1 })}
             transition={{ type: "spring", stiffness: 300 }}
           >
             {role.title}
@@ -166,7 +166,7 @@ const RoleCard = ({ role, index }: { role: typeof roles[0]; index: number }) => 
               background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.04) 50%, transparent 70%)",
               backgroundSize: "200% 100%",
             }}
-            animate={isActive ? { backgroundPosition: ["200% 0", "-200% 0"] } : {}}
+            animate={reduceMotion ? undefined : (isActive ? { backgroundPosition: ["200% 0", "-200% 0"] } : {})}
             transition={{ duration: 0.8, ease: "easeInOut" }}
           />
         </div>
@@ -176,12 +176,16 @@ const RoleCard = ({ role, index }: { role: typeof roles[0]; index: number }) => 
 };
 
 // Animated counter number
-const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
+const AnimatedNumber = ({ value, suffix = "", reduceMotion }: { value: number; suffix?: string; reduceMotion: boolean }) => {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
   useEffect(() => {
+    if (reduceMotion) {
+      setCount(value);
+      return;
+    }
     if (!isInView) return;
     let start = 0;
     const duration = 1800;
@@ -192,7 +196,7 @@ const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string
       else setCount(Math.floor(start));
     }, 16);
     return () => clearInterval(timer);
-  }, [isInView, value]);
+  }, [isInView, value, reduceMotion]);
 
   return <span ref={ref}>{count}{suffix}</span>;
 };
@@ -200,6 +204,7 @@ const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string
 const AboutSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const reduceMotion = useReducedMotion();
 
   const stats = [
     { value: 10, suffix: "+", label: "Projects Built" },
@@ -210,9 +215,9 @@ const AboutSection = () => {
   return (
     <section id="about" className="py-24 relative overflow-hidden">
       {/* Floating ambient orbs */}
-      <FloatingOrb x="5%" y="10%" size={300} color="rgba(245,158,11,0.08)" delay={0} />
-      <FloatingOrb x="75%" y="60%" size={250} color="rgba(6,182,212,0.06)" delay={2} />
-      <FloatingOrb x="45%" y="80%" size={200} color="rgba(168,85,247,0.05)" delay={4} />
+      <FloatingOrb x="5%" y="10%" size={300} color="rgba(245,158,11,0.08)" delay={0} reduceMotion={!!reduceMotion} />
+      <FloatingOrb x="75%" y="60%" size={250} color="rgba(6,182,212,0.06)" delay={2} reduceMotion={!!reduceMotion} />
+      <FloatingOrb x="45%" y="80%" size={200} color="rgba(168,85,247,0.05)" delay={4} reduceMotion={!!reduceMotion} />
 
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
@@ -318,7 +323,7 @@ const AboutSection = () => {
               {stats.map((s) => (
                 <div key={s.label} className="text-center">
                   <div className="text-2xl md:text-3xl font-heading text-primary font-bold">
-                    <AnimatedNumber value={s.value} suffix={s.suffix} />
+                    <AnimatedNumber value={s.value} suffix={s.suffix} reduceMotion={!!reduceMotion} />
                   </div>
                   <div className="text-xs text-muted-foreground font-subheading mt-1 tracking-wide">{s.label}</div>
                 </div>
@@ -339,7 +344,7 @@ const AboutSection = () => {
           </motion.p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {roles.map((role, i) => (
-              <RoleCard key={role.title} role={role} index={i} />
+              <RoleCard key={role.title} role={role} index={i} reduceMotion={!!reduceMotion} />
             ))}
           </div>
         </div>

@@ -99,7 +99,6 @@
       radial-gradient(circle at 78% 54%, hsl(45 93% 58% / 0.7) 0 1.2px, transparent 2.2px),
       radial-gradient(circle at 88% 80%, hsl(45 93% 58% / 0.75) 0 1.4px, transparent 2.4px);
     filter: drop-shadow(0 0 10px hsl(45 93% 47% / 0.18));
-    animation: gold-particle-drift-global 28s linear infinite;
   }
 
   body::after {
@@ -110,7 +109,6 @@
       radial-gradient(circle at 74% 30%, hsl(45 93% 58% / 0.44) 0 1px, transparent 2px),
       radial-gradient(circle at 90% 22%, hsl(45 93% 58% / 0.4) 0 1px, transparent 2px);
     filter: blur(1px);
-    animation: gold-particle-float-global 40s linear infinite reverse;
   }
 
   h1, h2, h3, h4 {
@@ -286,70 +284,4 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 
-  .gold-particle {
-    position: absolute;
-    border-radius: 9999px;
-    background: radial-gradient(circle, hsl(45 93% 58% / 0.95) 0%, hsl(45 93% 47% / 0.55) 45%, transparent 75%);
-    box-shadow: 0 0 18px hsl(45 93% 47% / 0.35);
-    will-change: transform, opacity;
-    animation: gold-particle-drift var(--particle-duration, 16s) linear infinite;
-    animation-delay: var(--particle-delay, 0s);
-  }
-
-  .gold-particle-soft {
-    background: radial-gradient(circle, hsl(45 93% 58% / 0.7) 0%, hsl(45 93% 47% / 0.25) 48%, transparent 78%);
-    box-shadow: 0 0 12px hsl(45 93% 47% / 0.22);
-    animation-duration: var(--particle-duration, 20s);
-  }
-
-  @keyframes gold-particle-drift-global {
-    0% {
-      transform: translate3d(0, 0, 0);
-      opacity: 0.45;
-    }
-    50% {
-      transform: translate3d(0, -24px, 0);
-      opacity: 0.7;
-    }
-    100% {
-      transform: translate3d(0, 0, 0);
-      opacity: 0.45;
-    }
-  }
-
-  @keyframes gold-particle-float-global {
-    0% {
-      transform: translate3d(0, 0, 0) scale(1);
-      opacity: 0.25;
-    }
-    33% {
-      transform: translate3d(10px, -18px, 0) scale(1.04);
-      opacity: 0.4;
-    }
-    66% {
-      transform: translate3d(-8px, 14px, 0) scale(0.98);
-      opacity: 0.35;
-    }
-    100% {
-      transform: translate3d(0, 0, 0) scale(1);
-      opacity: 0.25;
-    }
-  }
-
-  @keyframes gold-particle-drift {
-    0% {
-      transform: translate3d(0, 0, 0) scale(0.85);
-      opacity: 0;
-    }
-    10% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.9;
-    }
-    100% {
-      transform: translate3d(var(--particle-x, 24px), var(--particle-y, -160px), 0) scale(1.15);
-      opacity: 0;
-    }
-  }
 }

@@ -1,7 +1,9 @@
-import { motion, useInView, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
 import { useIsMobile } from "../hooks/useIsMobile";
-import { Trophy, Award, Medal, Star } from "lucide-react";
+import { ArrowUpRight, Trophy, Award, Medal, Star } from "lucide-react";
+
+const organizerName = "KEC Organizor";
 
 const achievements = [
   {
@@ -15,6 +17,8 @@ const achievements = [
     gradient: "linear-gradient(135deg,#f59e0b,#f97316)",
     glowColor: "rgba(245,158,11,0.35)",
     rank: "GOLD",
+    organizer: organizerName,
+    certificateUrl: "",
   },
   {
     title: "2nd Prize — Vision Reel",
@@ -27,6 +31,8 @@ const achievements = [
     gradient: "linear-gradient(135deg,#06b6d4,#3b82f6)",
     glowColor: "rgba(6,182,212,0.3)",
     rank: "SILVER",
+    organizer: organizerName,
+    certificateUrl: "",
   },
   {
     title: "3rd Prize — Aventrix Web Dev",
@@ -39,6 +45,8 @@ const achievements = [
     gradient: "linear-gradient(135deg,#ef4444,#f43f5e)",
     glowColor: "rgba(239,68,68,0.3)",
     rank: "BRONZE",
+    organizer: organizerName,
+    certificateUrl: "jh",
   },
   {
     title: "Best Reels Creator",
@@ -51,6 +59,8 @@ const achievements = [
     gradient: "linear-gradient(135deg,#a855f7,#ec4899)",
     glowColor: "rgba(168,85,247,0.3)",
     rank: "SPECIAL",
+    organizer: organizerName,
+    certificateUrl: "https://drive.google.com/file/d/1-mIJhL2x5H3OE-8boZhUO9_GNmRuqGGo/view?usp=sharing",
   },
 ];
 
@@ -58,9 +68,11 @@ const achievements = [
 const AchievementCard = ({
   achievement,
   index,
+  reduceMotion,
 }: {
   achievement: (typeof achievements)[0];
   index: number;
+  reduceMotion: boolean;
 }) => {
   const Icon = achievement.icon;
   const cardRef = useRef<HTMLDivElement>(null);
@@ -69,23 +81,7 @@ const AchievementCard = ({
   const isCardInView = useInView(cardRef, { margin: "-5% 0px -5% 0px", once: false });
   // On mobile: auto-glow when card scrolls into view
   const isActive = hovered || (isMobile && isCardInView);
-
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const rotateX = useTransform(my, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(mx, [-0.5, 0.5], [-8, 8]);
-  const sx = useSpring(rotateX, { stiffness: 160, damping: 18 });
-  const sy = useSpring(rotateY, { stiffness: 160, damping: 18 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = cardRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    mx.set((e.clientX - rect.left) / rect.width - 0.5);
-    my.set((e.clientY - rect.top) / rect.height - 0.5);
-  };
   const handleMouseLeave = () => {
-    mx.set(0);
-    my.set(0);
     setHovered(false);
   };
 
@@ -108,12 +104,7 @@ const AchievementCard = ({
     >
       <motion.div
         ref={cardRef}
-        style={{
-          rotateX: isMobile ? 0 : sx,
-          rotateY: isMobile ? 0 : sy,
-          transformStyle: "preserve-3d",
-        }}
-        onMouseMove={handleMouseMove}
+        style={{ transformStyle: "preserve-3d" }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={handleMouseLeave}
         className="relative h-full cursor-pointer"
@@ -121,7 +112,7 @@ const AchievementCard = ({
         {/* Glow aura */}
         <motion.div
           className="absolute inset-0 rounded-2xl pointer-events-none"
-          animate={{ opacity: isActive ? 1 : 0 }}
+          animate={reduceMotion ? undefined : { opacity: isActive ? 1 : 0 }}
           transition={{ duration: 0.35 }}
           style={{
             background: achievement.glowColor,
@@ -160,7 +151,7 @@ const AchievementCard = ({
                 "linear-gradient(110deg,transparent 35%,rgba(255,255,255,0.04) 50%,transparent 65%)",
               backgroundSize: "200% 100%",
             }}
-            animate={isActive ? { backgroundPosition: ["200% 0", "-200% 0"] } : {}}
+            animate={reduceMotion ? undefined : (isActive ? { backgroundPosition: ["200% 0", "-200% 0"] } : {})}
             transition={{ duration: 0.7 }}
           />
 
@@ -190,33 +181,21 @@ const AchievementCard = ({
               <motion.div
                 className="absolute inset-0 rounded-2xl"
                 style={{ border: `1px solid ${achievement.color}50` }}
-                animate={
-                  isActive
-                    ? { scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }
-                    : { scale: 1, opacity: 0 }
-                }
-                transition={{ duration: 1.4, repeat: isActive ? Infinity : 0 }}
+                animate={reduceMotion ? undefined : (isActive ? { scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] } : { scale: 1, opacity: 0 })}
+                transition={{ duration: 1.4, repeat: isActive && !reduceMotion ? Infinity : 0 }}
               />
               {/* Second ring */}
               <motion.div
                 className="absolute inset-0 rounded-2xl"
                 style={{ border: `1px solid ${achievement.color}30` }}
-                animate={
-                  isActive
-                    ? { scale: [1, 1.9, 1], opacity: [0.4, 0, 0.4] }
-                    : { scale: 1, opacity: 0 }
-                }
-                transition={{ duration: 1.4, repeat: isActive ? Infinity : 0, delay: 0.3 }}
+                animate={reduceMotion ? undefined : (isActive ? { scale: [1, 1.9, 1], opacity: [0.4, 0, 0.4] } : { scale: 1, opacity: 0 })}
+                transition={{ duration: 1.4, repeat: isActive && !reduceMotion ? Infinity : 0, delay: 0.3 }}
               />
 
               <motion.div
                 className="relative w-14 h-14 rounded-2xl flex items-center justify-center"
                 style={{ background: `${achievement.color}18`, border: `1px solid ${achievement.color}30` }}
-                animate={
-                  isActive
-                    ? { rotate: [0, -8, 8, -4, 4, 0], scale: 1.12 }
-                    : { rotate: 0, scale: 1 }
-                }
+                animate={reduceMotion ? undefined : (isActive ? { rotate: [0, -8, 8, -4, 4, 0], scale: 1.12 } : { rotate: 0, scale: 1 })}
                 transition={{ duration: 0.5 }}
               >
                 <Icon className="w-6 h-6" style={{ color: achievement.color }} />
@@ -227,7 +206,7 @@ const AchievementCard = ({
               <motion.h3
                 className="text-lg md:text-xl font-heading leading-tight"
                 style={{ color: achievement.color }}
-                animate={isActive ? { x: 4 } : { x: 0 }}
+                animate={reduceMotion ? undefined : (isActive ? { x: 4 } : { x: 0 })}
                 transition={{ duration: 0.3 }}
               >
                 {achievement.title}
@@ -245,7 +224,7 @@ const AchievementCard = ({
           <motion.div
             className="h-px mb-4"
             style={{ background: `linear-gradient(90deg,${achievement.color}30,transparent)` }}
-            animate={isActive ? { opacity: 1 } : { opacity: 0.5 }}
+            animate={reduceMotion ? undefined : (isActive ? { opacity: 1 } : { opacity: 0.5 })}
             transition={{ duration: 0.3 }}
           />
 
@@ -255,36 +234,66 @@ const AchievementCard = ({
           </p>
 
           {/* Year badge bottom */}
-          <div className="mt-5 flex items-center justify-between">
+          <div className="mt-5 flex items-center justify-between gap-4">
             <motion.div
-              className="flex items-center gap-2"
-              animate={isActive ? { opacity: 1, x: 0 } : { opacity: 0.5, x: -4 }}
+              className="flex flex-col items-start gap-1"
+              animate={reduceMotion ? undefined : (isActive ? { opacity: 1, x: 0 } : { opacity: 0.5, x: -4 })}
               transition={{ duration: 0.3 }}
             >
-              <motion.div
-                className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ background: achievement.color + "20", border: `1px solid ${achievement.color}30` }}
-                animate={{ rotate: isActive ? 360 : 0 }}
-                transition={{ duration: 0.6 }}
+              <div className="flex items-center gap-2">
+                <motion.div
+                  className="w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ background: achievement.color + "20", border: `1px solid ${achievement.color}30` }}
+                  animate={reduceMotion ? undefined : { rotate: isActive ? 360 : 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <span className="text-[8px]" style={{ color: achievement.color }}>★</span>
+                </motion.div>
+                <span
+                  className="text-xs font-subheading font-semibold tracking-wider"
+                  style={{ color: achievement.color }}
+                >
+                  {achievement.year}
+                </span>
+              </div>
+              <motion.span
+                className="inline-flex items-center rounded-full border px-3 py-1 text-[9px] uppercase tracking-[0.28em] font-subheading"
+                style={{
+                  color: achievement.color,
+                  borderColor: `${achievement.color}55`,
+                  background: `linear-gradient(135deg, ${achievement.color}22, rgba(255,255,255,0.03))`,
+                  textShadow: `0 0 12px ${achievement.color}66`,
+                  boxShadow: `0 0 18px ${achievement.color}1f, inset 0 0 12px ${achievement.color}12`,
+                }}
+                animate={reduceMotion ? undefined : (isActive ? { scale: 1.04, boxShadow: `0 0 24px ${achievement.color}2f, inset 0 0 14px ${achievement.color}18` } : { scale: 1 })}
+                transition={{ duration: 0.35 }}
               >
-                <span className="text-[8px]" style={{ color: achievement.color }}>★</span>
-              </motion.div>
-              <span
-                className="text-xs font-subheading font-semibold tracking-wider"
-                style={{ color: achievement.color }}
-              >
-                {achievement.year}
-              </span>
+                {achievement.organizer}
+              </motion.span>
             </motion.div>
 
-            <motion.span
-              className="text-[10px] uppercase tracking-[0.3em] font-subheading"
-              style={{ color: achievement.color + "60" }}
-              animate={isActive ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              Achievement
-            </motion.span>
+            {achievement.certificateUrl ? (
+              <div className="flex flex-col items-end gap-1">
+                <motion.a
+                  href={achievement.certificateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-transparent px-4 py-2 text-[10px] uppercase tracking-[0.25em] font-subheading text-primary transition-colors duration-300 shadow-[0_0_24px_rgba(245,158,11,0.12)] hover:border-primary/60 hover:bg-primary/20 hover:text-primary"
+                  whileHover={{ y: -1, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span>View Proof</span>
+                  <ArrowUpRight className="h-3 w-3" />
+                </motion.a>
+              </div>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-background/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.25em] font-subheading text-muted-foreground/60"
+                title="Add a proof link to enable this button"
+              >
+                View Proof
+              </span>
+            )}
           </div>
         </div>
       </motion.div>
@@ -295,6 +304,7 @@ const AchievementCard = ({
 const TimelineSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const reduceMotion = useReducedMotion();
 
   return (
     <section
@@ -315,8 +325,6 @@ const TimelineSection = () => {
           background: "radial-gradient(circle,rgba(245,158,11,0.07),transparent 70%)",
           filter: "blur(60px)",
         }}
-        animate={{ scale: [1, 1.15, 1], opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 7, repeat: Infinity }}
       />
       <motion.div
         className="absolute pointer-events-none"
@@ -328,8 +336,6 @@ const TimelineSection = () => {
           background: "radial-gradient(circle,rgba(168,85,247,0.06),transparent 70%)",
           filter: "blur(50px)",
         }}
-        animate={{ scale: [1, 1.12, 1], opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 9, repeat: Infinity, delay: 2 }}
       />
 
       <div className="section-container" ref={ref}>
@@ -364,13 +370,7 @@ const TimelineSection = () => {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.25, duration: 0.5 }}
           >
-            <motion.span
-              animate={{ y: [0, -8, 0], rotate: [-5, 5, -5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              style={{ display: "inline-block" }}
-            >
-              🏆
-            </motion.span>
+            <span>🏆</span>
           </motion.div>
 
           {/* Rainbow underline */}
@@ -396,7 +396,7 @@ const TimelineSection = () => {
         <div className="relative mx-auto max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {achievements.map((achievement, index) => (
-              <AchievementCard key={achievement.title} achievement={achievement} index={index} />
+              <AchievementCard key={achievement.title} achievement={achievement} index={index} reduceMotion={!!reduceMotion} />
             ))}
           </div>
         </div>

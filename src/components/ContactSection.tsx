@@ -1,4 +1,4 @@
-import { motion, useInView, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, useInView, useMotionValue, useTransform, useSpring, useReducedMotion } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { Mail, Phone, MapPin, Send, Loader2, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -173,6 +173,7 @@ const ContactSection = () => {
   const ref = useRef(null);
   const formRef = useRef<HTMLFormElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const reduceMotion = useReducedMotion();
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -214,13 +215,13 @@ const ContactSection = () => {
       <motion.div
         className="absolute top-1/4 -left-24 w-72 h-72 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle,hsl(45 93% 47% / 0.07),transparent 70%)", filter: "blur(50px)" }}
-        animate={{ scale: [1, 1.12, 1], opacity: [0.5, 1, 0.5] }}
+        animate={reduceMotion ? undefined : { scale: [1, 1.12, 1], opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 7, repeat: Infinity }}
       />
       <motion.div
         className="absolute bottom-1/4 -right-16 w-60 h-60 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle,rgba(6,182,212,0.06),transparent 70%)", filter: "blur(40px)" }}
-        animate={{ scale: [1, 1.15, 1], opacity: [0.5, 1, 0.5] }}
+        animate={reduceMotion ? undefined : { scale: [1, 1.15, 1], opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 9, repeat: Infinity, delay: 2 }}
       />
 
@@ -280,7 +281,7 @@ const ContactSection = () => {
               {/* Sparkle */}
               <motion.div
                 className="absolute top-4 right-4"
-                animate={{ rotate: 360, opacity: [0.3, 0.8, 0.3] }}
+                animate={reduceMotion ? undefined : { rotate: 360, opacity: [0.3, 0.8, 0.3] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
               >
                 <Sparkles className="w-5 h-5 text-primary/30" />
